@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete the Sentences - Drag and Drop</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #1976d2;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .instructions {
+            text-align: center;
+            color: #555;
+            margin-bottom: 30px;
+            padding: 15px;
+            background-color: #e3f2fd;
+            border-radius: 10px;
+            border-left: 4px solid #1976d2;
+        }
+
+        .words-bank {
+            background: #f5f9ff;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border: 2px solid #90caf9;
+        }
+
+        .words-bank-title {
+            font-weight: bold;
+            color: #1976d2;
+            margin-bottom: 15px;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        .words-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .word-item {
+            background: linear-gradient(135deg, #64b5f6 0%, #42a5f5 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: move;
+            font-weight: 500;
+            box-shadow: 0 3px 10px rgba(66, 165, 245, 0.3);
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+
+        .word-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(66, 165, 245, 0.5);
+        }
+
+        .word-item.dragging {
+            opacity: 0.5;
+            transform: rotate(5deg);
+        }
+
+        .word-item.hidden {
+            display: none;
+        }
+
+        .sentences-container {
+            background: white;
+            padding: 20px;
+        }
+
+        .sentence-item {
+            background: #fafafa;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            border: 2px solid #e0e0e0;
+            font-size: 18px;
+            line-height: 1.8;
+            transition: all 0.3s ease;
+        }
+
+        .sentence-item.correct {
+            background: #c8e6c9;
+            border-color: #4caf50;
+        }
+
+        .sentence-item.incorrect {
+            background: #ffcdd2;
+            border-color: #f44336;
+        }
+
+        .sentence-number {
+            color: #1976d2;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .drop-zone {
+            display: inline-block;
+            min-width: 150px;
+            min-height: 35px;
+            border: 2px dashed #90caf9;
+            border-radius: 8px;
+            padding: 5px 15px;
+            background: white;
+            transition: all 0.3s ease;
+            vertical-align: middle;
+            margin: 0 5px;
+        }
+
+        .drop-zone.drag-over {
+            background: #e3f2fd;
+            border-color: #1976d2;
+            border-style: solid;
+        }
+
+        .drop-zone.filled {
+            border-style: solid;
+            border-color: #64b5f6;
+        }
+
+        .dropped-word {
+            background: linear-gradient(135deg, #64b5f6 0%, #42a5f5 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: move;
+            display: inline-block;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 15px 40px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        #checkBtn {
+            background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(25, 118, 210, 0.3);
+        }
+
+        #checkBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
+        }
+
+        #resetBtn {
+            background: linear-gradient(135deg, #757575 0%, #616161 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(117, 117, 117, 0.3);
+        }
+
+        #resetBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(117, 117, 117, 0.4);
+        }
+
+        .result-message {
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .result-message.show {
+            display: block;
+        }
+
+        .result-message.success {
+            background: #c8e6c9;
+            color: #2e7d32;
+            border: 2px solid #4caf50;
+        }
+
+        .result-message.partial {
+            background: #fff9c4;
+            color: #f57f17;
+            border: 2px solid #fbc02d;
+        }
+
+        @media (max-width: 768px) {
+            .sentence-item {
+                font-size: 16px;
+            }
+
+            .drop-zone {
+                min-width: 120px;
+                display: block;
+                margin: 10px 0;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 Complete the Sentences</h1>
+        <div class="instructions">
+            <strong>Instructions:</strong> Drag the words from the word bank to complete each sentence. When you're done, click "Check Answers" to see your results!
+        </div>
+
+        <div class="words-bank">
+            <div class="words-bank-title">📝 Word Bank</div>
+            <div class="words-container" id="wordsContainer">
+                <div class="word-item" draggable="true" data-word="breathing">breathing</div>
+                <div class="word-item" draggable="true" data-word="bandage">bandage</div>
+                <div class="word-item" draggable="true" data-word="conscious">conscious</div>
+                <div class="word-item" draggable="true" data-word="bleeding">bleeding</div>
+                <div class="word-item" draggable="true" data-word="still">still</div>
+            </div>
+        </div>
+
+        <div class="sentences-container">
+            <div class="sentence-item" data-answer="1">
+                <span class="sentence-number">1.</span>
+                She's not
+                <span class="drop-zone" data-correct="conscious" data-id="1"></span>.
+                She's not waking up.
+            </div>
+
+            <div class="sentence-item" data-answer="2">
+                <span class="sentence-number">2.</span>
+                There's a lot of blood. The cut is
+                <span class="drop-zone" data-correct="bleeding" data-id="2"></span>.
+            </div>
+
+            <div class="sentence-item" data-answer="3">
+                <span class="sentence-number">3.</span>
+                Don't move her. Keep her
+                <span class="drop-zone" data-correct="still" data-id="3"></span>
+                and warm.
+            </div>
+
+            <div class="sentence-item" data-answer="4">
+                <span class="sentence-number">4.</span>
+                Apply a clean
+                <span class="drop-zone" data-correct="bandage" data-id="4"></span>
+                to the wound.
+            </div>
+
+            <div class="sentence-item" data-answer="5">
+                <span class="sentence-number">5.</span>
+                Is she
+                <span class="drop-zone" data-correct="breathing" data-id="5"></span>?
+                Check if air is going in and out.
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button id="checkBtn">Check Answers</button>
+            <button id="resetBtn">Reset</button>
+        </div>
+
+        <div id="resultMessage" class="result-message"></div>
+    </div>
+
+    <script>
+        let draggedElement = null;
+
+        // Get all elements
+        const wordItems = document.querySelectorAll('.word-item');
+        const dropZones = document.querySelectorAll('.drop-zone');
+        const checkBtn = document.getElementById('checkBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const resultMessage = document.getElementById('resultMessage');
+
+        // Add drag event listeners to words
+        wordItems.forEach(item => {
+            item.addEventListener('dragstart', dragStart);
+            item.addEventListener('dragend', dragEnd);
+        });
+
+        // Add drop event listeners to drop zones
+        dropZones.forEach(zone => {
+            zone.addEventListener('dragover', dragOver);
+            zone.addEventListener('dragenter', dragEnter);
+            zone.addEventListener('dragleave', dragLeave);
+            zone.addEventListener('drop', drop);
+        });
+
+        function dragStart(e) {
+            draggedElement = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', this.innerHTML);
+        }
+
+        function dragEnd(e) {
+            this.classList.remove('dragging');
+        }
+
+        function dragOver(e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+            e.dataTransfer.dropEffect = 'move';
+            return false;
+        }
+
+        function dragEnter(e) {
+            this.classList.add('drag-over');
+        }
+
+        function dragLeave(e) {
+            this.classList.remove('drag-over');
+        }
+
+        function drop(e) {
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+            
+            this.classList.remove('drag-over');
+            
+            // Clear any existing content in this drop zone
+            this.innerHTML = '';
+            
+            // Create a new dropped word element
+            const word = draggedElement.dataset.word;
+            const droppedWord = document.createElement('span');
+            droppedWord.className = 'dropped-word';
+            droppedWord.textContent = word;
+            droppedWord.draggable = true;
+            droppedWord.dataset.word = word;
+            
+            // Add drag events to the dropped word so it can be moved again
+            droppedWord.addEventListener('dragstart', dragStart);
+            droppedWord.addEventListener('dragend', dragEnd);
+            
+            this.appendChild(droppedWord);
+            this.classList.add('filled');
+            
+            // Hide the original word
+            draggedElement.classList.add('hidden');
+            
+            // Reset result message when dropping
+            resultMessage.classList.remove('show');
+            document.querySelectorAll('.sentence-item').forEach(item => {
+                item.classList.remove('correct', 'incorrect');
+            });
+            
+            return false;
+        }
+
+        checkBtn.addEventListener('click', checkAnswers);
+        resetBtn.addEventListener('click', resetGame);
+
+        function checkAnswers() {
+            let correct = 0;
+            let total = 0;
+            
+            dropZones.forEach(zone => {
+                const sentenceItem = zone.closest('.sentence-item');
+                const correctAnswer = zone.dataset.correct;
+                const droppedWord = zone.querySelector('.dropped-word');
+                
+                if (droppedWord) {
+                    total++;
+                    const userAnswer = droppedWord.dataset.word;
+                    
+                    if (userAnswer === correctAnswer) {
+                        sentenceItem.classList.add('correct');
+                        sentenceItem.classList.remove('incorrect');
+                        correct++;
+                    } else {
+                        sentenceItem.classList.add('incorrect');
+                        sentenceItem.classList.remove('correct');
+                    }
+                }
+            });
+            
+            // Show result message
+            resultMessage.classList.add('show');
+            if (correct === dropZones.length) {
+                resultMessage.className = 'result-message show success';
+                resultMessage.innerHTML = '🎉 Perfect! All sentences are correct!';
+            } else if (total === 0) {
+                resultMessage.className = 'result-message show partial';
+                resultMessage.innerHTML = '⚠️ Please complete the sentences first!';
+            } else {
+                resultMessage.className = 'result-message show partial';
+                resultMessage.innerHTML = `📊 You got ${correct} out of ${dropZones.length} correct. Try again!`;
+            }
+        }
+
+        function resetGame() {
+            // Clear all drop zones
+            dropZones.forEach(zone => {
+                zone.innerHTML = '';
+                zone.classList.remove('filled');
+            });
+            
+            // Show all original words again
+            wordItems.forEach(item => {
+                item.classList.remove('hidden');
+            });
+            
+            // Clear result styling
+            document.querySelectorAll('.sentence-item').forEach(item => {
+                item.classList.remove('correct', 'incorrect');
+            });
+            
+            // Hide result message
+            resultMessage.classList.remove('show');
+        }
+    </script>
+</body>
+</html>
